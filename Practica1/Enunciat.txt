@@ -1,0 +1,26 @@
+Task 1: Distributed DataFrame
+
+The goal is to implement a Python  Distributed DataFrame (Dask Dataframes)  inspired in the Dask python library.
+The idea is to execute operations in Dataframes residing in remote nodes.  You must implement
+four solutions using different technologies: XMLRPC, gRPC, Redis, and RabbitMQ.
+
+Implement  a Master/Worker cluster architecture where a frontend accesses the different nodes.
+The Master node should support a simple API to add or remove nodes from the cluster.
+You should also be able to offer a subset of the Dask DataFrame API  for dealing with CSV data.
+Support operations like: read_csv,  apply, columns, groupby, head, isin, items, max, min.
+You are encouraged to copy code from Internet and Dask if necessary.
+
+Theoretical tasks:
+
+    Provide diagrams explaining the solutions you have implemented. Show plots validating the execution of distributed tasks compared to the same execution in a single machine.
+    Compare the architectures that you designed using direct or indirect communication middleware. You can even propose solutions that combine different middleware services (like gRPC and Redis).
+    Read this paper: https://arxiv.org/abs/1702.04024 and describe the distributed architecture and communication middleware used in this solution,
+
+
+Deliver the code compressed in zip format including a PDF file answering the theoretical questions.
+
+References:
+
+    Dask: Pandas for faster processing https://medium.com/featurepreneur/dask-pandas-for-faster-processing-7f9aa2f53cc7
+    Pandas vs Dask : The Power of Parallel Computing! https://medium.com/featurepreneur/pandas-vs-dask-the-power-of-parallel-computing-994a202a74bd
+    How to efficiently parallelize Dask Dataframe computation on a Single Machine https://medium.com/analytics-vidhya/how-to-efficiently-parallelize-dask-dataframe-computation-on-a-single-machine-1f10b5b02177
