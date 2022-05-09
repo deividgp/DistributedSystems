@@ -1,0 +1,16 @@
+syntax = "proto3";
+import "google/protobuf/empty.proto";
+
+message Insult {
+    string value = 1;
+}
+
+message Insults {
+    repeated string value = 1;
+}
+
+service InsultingService {
+    rpc getInsults (google.protobuf.Empty) returns (Insults) {}
+    rpc addInsult (Insult) returns (google.protobuf.Empty) {}
+    rpc insultme (google.protobuf.Empty) returns (Insult) {}
+}

@@ -1,0 +1,24 @@
+In this task we continue the work in Task 1 (Distributed DataFrame).
+We must add three important features to the first Task (XMLRPC) : Consistency, fault-tolerance and Cloud-based support.
+
+1) Consistency
+A big problem of the first task is that the list of Workers may change, but the client is not aware of these changes.
+We require a dynamic system where the client must be aware of changes in the list of workers.
+If a new worker is added or removed to the Cluster, the client must react to that.
+
+This means implementing a dynamic membership protocol for the group of workers.
+And also ensuring that al operations executed in the group are executed in all active group members.
+
+2) Fault Tolerance
+The system must be fault tolerant both at the worker and at the Master level.
+Implement Failure Detectors to detect that a node fails,  and remove it from the list of Workers. Client must be notified and react to failure changes.
+
+Using leader election, one Worker may become master to solve the fault tolerance of the Master.
+
+3) Cloud implementation
+
+Implement Task 1 using now Cloud Object Storage (IBM COS, Amazon S3) and Serverless Functions (IBM Cloud Functions, Amazon Lambda). In this case, you can dynamically invoke the number of workers that you need. Or for example, if in a bucket you have 5 csv files, your system could launch 5 serverless functions.
+
+1) and 2) are mandatory to pass this Task, while 3) is optional (necessary to achieve a higher score).
+
+Provide a final documentation report explaining your architecture with a diagram, and include validation tests to ensure that the system is working.
