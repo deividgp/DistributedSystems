@@ -1,5 +1,3 @@
-Task 1: Distributed DataFrame
-
 The goal is to implement a Python  Distributed DataFrame (Dask Dataframes)  inspired in the Dask python library.
 The idea is to execute operations in Dataframes residing in remote nodes.  You must implement
 four solutions using different technologies: XMLRPC, gRPC, Redis, and RabbitMQ.
@@ -19,8 +17,6 @@ Theoretical tasks:
 
 Deliver the code compressed in zip format including a PDF file answering the theoretical questions.
 
-References:
-
-    Dask: Pandas for faster processing https://medium.com/featurepreneur/dask-pandas-for-faster-processing-7f9aa2f53cc7
-    Pandas vs Dask : The Power of Parallel Computing! https://medium.com/featurepreneur/pandas-vs-dask-the-power-of-parallel-computing-994a202a74bd
-    How to efficiently parallelize Dask Dataframe computation on a Single Machine https://medium.com/analytics-vidhya/how-to-efficiently-parallelize-dask-dataframe-computation-on-a-single-machine-1f10b5b02177
+Implement three architectures: direct communication, hybrid (direct+indirect), and indirect communication.
+To pass this task you need at least to implement direct and hybrid architecture with xmlrpc and redis and deliver the theoretical tasks.
+Implementing indirect communication and grpc/rabbit will be need to obtain excellent degrees.
