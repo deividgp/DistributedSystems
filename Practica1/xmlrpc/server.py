@@ -1,9 +1,9 @@
 import logging
 import os
-import redis
+import pandas
 import time
 import sys
-from redis.client import Redis
+import datetime
 from xmlrpc.server import SimpleXMLRPCServer
 from multiprocessing import Process
 
@@ -11,7 +11,6 @@ WORKERS = {}
 WORKER_ID = 0
 llista = {}
 cua = 'cua_jobs' 
-r = None
 
 def startWorker(w_id):
     global cua
@@ -55,17 +54,14 @@ def createWorker():
     global WORKERS
     global WORKER_ID
 
-    proces = Process(target=startWorker, args=(WORKER_ID,))
-    proces.start()
+    #proces = Process(target=startWorker, args=(WORKER_ID,))
+    #proces.start()
     
-    WORKERS[WORKER_ID] = proces
-    WORKER_ID =  WORKER_ID+1
+    #WORKERS[WORKER_ID] = proces
+    #WORKER_ID =  WORKER_ID+1
     return ('WORKER CREAT = ',WORKER_ID)
 
-
-
 if __name__ == '__main__':
-        
     # Set up logging
     logging.basicConfig(level=logging.INFO)
 
@@ -75,15 +71,6 @@ if __name__ == '__main__':
        )
 
     server.register_function(createWorker)
-    server.register_function(deleteWorker)
-    server.register_function(listWorker)
-    server.register_function(countingWords)
-    server.register_function(wordCount)
-    server.register_function(tractar_cua)
-    server.register_function(getResult)
-    
-    r = redis.Redis()
-    r.set("counter", 0)
 
     # Start the server
     try:
