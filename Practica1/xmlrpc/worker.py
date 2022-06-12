@@ -1,13 +1,9 @@
-from audioop import add
-from doctest import master
 import logging
-import os
-from time import process_time_ns
-from unittest import result
 import pandas
 import sys
 from xmlrpc.server import SimpleXMLRPCServer
 import xmlrpc.client
+import numpy
 
 df = ""
 
@@ -17,8 +13,8 @@ def read_csv(route):
     df = pandas.read_csv(route)
 
 
-def apply():
-    print("hola")
+def apply(func, label):
+    return df[label].apply(eval(func)).values.tolist()
 
 
 def columns():
@@ -38,21 +34,34 @@ def head(num):
     return df.head(num).values.tolist()
 
 
-def isin(val1, val2):
-    print(df.isin([val1, val2]))
-    return df.isin([val1, val2]).values.tolist()
+def isin(val1, val2, label):
+    return df[label].isin([(val1), (val2)]).values.tolist()
 
 
-def items():
-    print("hola")
+def items(label):
+    result = []
+    for label, content in df[label].items():
+        if (type(content) is not str):
+            result.append((label, str(content)))
+        else:
+            result.append((label, content))
+    return result
 
 
-def max():
-    print("hola")
+def max(label):
+    aux = df[label].max()
+    if (type(aux) is not str):
+        return aux.item()
+    else:
+        return aux
 
 
-def min():
-    print("hola")
+def min(label):
+    aux = df[label].min()
+    if (type(aux) is not str):
+        return aux.item()
+    else:
+        return aux
 
 
 address = "http://localhost:"+sys.argv[1]
@@ -79,11 +88,9 @@ server.register_function(items)
 server.register_function(max)
 server.register_function(min)
 
-print("CSV route:")
-route = input()
+route = input("CSV route: ")
 read_csv(route)
 
-isin(0, 40)
 try:
     print('Control+C PER SORTIR')
     server.serve_forever()
