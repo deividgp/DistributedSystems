@@ -24,45 +24,40 @@ while (num != 9):
 
     result = ""
     params = ""
+    if num != 9:
+        listName = generateListName()
 
     match num:
         case 1:
             func = input("Function To Apply Required: ")
-            listName = generateListName()
+            
             red.publish("functions", "apply:"+listName+":"+params)
         case 2:
             nameFile = input("Name File Required: ")
-            listName = generateListName()
             red.publish("functions", "columns:"+listName+":"+params)
         case 3:
             by = input("Mapping, Function, Label Or List Of Labels Is Required")
             nameFile = input("Name File Required: ")
-            listName = generateListName()
             red.publish("functions", "groupby:"+listName+":"+params)
         case 4:
             numRows = input("Number Of Rows Required: ")
             nameFile = input("Name File Required: ")
-            listName = generateListName()
             red.publish("functions", "head:"+listName+":"+params)
         case 5:
             values = input(
                 "Values Required (Iterable, Series, DataFrame Or Dict): ")
             nameFile = input("Name File Required: ")
-            listName = generateListName()
             red.publish("functions", "isin:"+listName+":"+params)
         case 6:
             nameFile = input("Name File Required: ")
-            listName = generateListName()
             red.publish("functions", "items:"+listName+":"+params)
         case 7:
             label = input("Column Label Reuqired: ")
             nameFile = input("Name File Required: ")
-            listName = generateListName()
             red.publish("functions", "max:"+listName+":"+params)
         case 8:
             label = input("Column Label Reuqired: ")
             nameFile = input("Name File Required: ")
-            listName = generateListName()
             red.publish("functions", "min:"+listName+":"+params)
         case 9:
             result = "Have A Nice Day!"
