@@ -78,7 +78,6 @@ master = xmlrpc.client.ServerProxy('http://localhost:9000')
 
 master.createWorker(address)
 
-# server.register_function(read_csv)
 server.register_function(apply)
 server.register_function(columns)
 server.register_function(groupby)

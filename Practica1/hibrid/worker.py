@@ -1,8 +1,4 @@
-from audioop import add
 import logging
-import os
-from time import process_time_ns
-from unittest import result
 import pandas
 import sys
 from xmlrpc.server import SimpleXMLRPCServer
@@ -16,8 +12,8 @@ def read_csv(route):
     df = pandas.read_csv(route)
 
 
-def apply():
-    print("hola")
+def apply(func, label):
+    return df[label].apply(eval(func)).values.tolist()
 
 
 def columns():
@@ -37,21 +33,35 @@ def head(num):
     return df.head(num).values.tolist()
 
 
-def isin(val1, val2):
-    print(df.isin([val1, val2]))
-    return df.isin([val1, val2]).values.tolist()
+def isin(val1, val2, label):
+    return df[label].isin([(val1), (val2)]).values.tolist()
 
 
-def items():
-    print("hola")
+def items(label):
+    result = []
+    for label, content in df[label].items():
+        if (type(content) is not str):
+            result.append((label, str(content)))
+        else:
+            result.append((label, content))
+    return result
 
 
-def max():
-    print("hola")
+def max(label):
+    aux = df[label].max()
+    if (type(aux) is not str):
+        return aux.item()
+    else:
+        return aux
 
 
-def min():
-    print("hola")
+def min(label):
+    aux = df[label].min()
+    if (type(aux) is not str):
+        return aux.item()
+    else:
+        return aux
+
 
 red = redis.Redis('localhost', 6379, charset="utf-8", decode_responses=True)
 
@@ -67,7 +77,6 @@ server = SimpleXMLRPCServer(
 
 red.sadd("workers", address)
 
-# server.register_function(read_csv)
 server.register_function(apply)
 server.register_function(columns)
 server.register_function(groupby)
@@ -78,7 +87,7 @@ server.register_function(max)
 server.register_function(min)
 
 route = input("CSV route:")
-#read_csv(route)
+read_csv(route)
 
 try:
     print('Control+C PER SORTIR')

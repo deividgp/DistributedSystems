@@ -1,6 +1,3 @@
-from asyncio.windows_events import NULL
-from doctest import master
-from traceback import format_exc
 from io import StringIO
 import xmlrpc.client
 import pandas
@@ -10,7 +7,6 @@ red = redis.Redis('localhost', 6379, charset="utf-8", decode_responses=True)
 workers = []
 num = 0
 workers = red.smembers("workers")
-print(workers)
 
 while (num != 10):
     print('\n1. List & Update Workers')
@@ -27,11 +23,22 @@ while (num != 10):
     result = []
     match num:
         case 1:
-            workers = red.smembers("workers")
-            result = workers
+            result = red.smembers("workers")
+            for address in result:
+                workers.append(xmlrpc.client.ServerProxy(address))
         case 2:
             func = input("Function To Apply Required: ")
-            print("hola")
+            label = input("Label Is Required: ")
+            for worker in workers:
+                result.append(worker._ServerProxy__host)
+                result.append(worker.apply(func, label))
+            prntRsults = input(
+                "Print Or Save In A File The Results(print/save)? ")
+            if (prntRsults == "save"):
+                with open(r'./ApplyResults.txt', 'w') as fp:
+                    for item in result:
+                        fp.write("%s\t\n" % item)
+                result = "File Saved"
         case 3:
             for worker in workers:
                 result.append(worker._ServerProxy__host)
@@ -53,7 +60,7 @@ while (num != 10):
             prntRsults = input(
                 "Print Or Save In A File The Results(print/save)? ")
             if (prntRsults == "save"):
-                result.to_csv("OrderByResults.csv")
+                result.to_csv("./OrderByResults.csv")
                 result = "File Saved"
         case 5:
             numRows = input("Number Of Rows Required: ")
@@ -61,22 +68,41 @@ while (num != 10):
                 result.append(worker._ServerProxy__host)
                 result.append(worker.head(int(numRows)))
         case 6:
+            label = input("Column Label Required: ")
             values = input("Values Required (Ex:0 2): ")
             valList = values.split()
             for worker in workers:
                 result.append(worker._ServerProxy__host)
-                result.append(worker.isin(valList[0], valList[1]))
+                result.append(worker.isin(valList[0], valList[1], label))
+            prntRsults = input(
+                "Print Or Save In A File The Results(print/save)? ")
+            if (prntRsults == "save"):
+                with open(r'./IsinResults.txt', 'w') as fp:
+                    for item in result:
+                        fp.write("%s\t\n" % item)
+                result = "File Saved"
         case 7:
-            nameFile = input("Name File Required: ")
-            print("hola")
+            label = input("Column Label Required: ")
+            for worker in workers:
+                result.append(worker._ServerProxy__host)
+                result.append(worker.items(label))
+            prntRsults = input(
+                "Print Or Save In A File The Results(print/save)? ")
+            if (prntRsults == "save"):
+                with open(r'./ItemsResults.txt', 'w') as fp:
+                    for item in result:
+                        fp.write("%s\t\n" % item)
+                result = "File Saved"
         case 8:
-            label = input("Column Label Reuqired: ")
-            nameFile = input("Name File Required: ")
-            print("hola")
+            label = input("Column Label Required: ")
+            for worker in workers:
+                result.append(worker.max(label))
+            result = max(result)
         case 9:
-            label = input("Column Label Reuqired: ")
-            nameFile = input("Name File Required: ")
-            print("hola")
+            label = input("Column Label Required: ")
+            for worker in workers:
+                result.append(worker.min(label))
+            result = min(result)
         case 10:
             result = "Have A Nice Day!"
 
