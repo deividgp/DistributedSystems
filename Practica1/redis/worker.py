@@ -11,6 +11,7 @@ def read_csv(route):
 
 
 def apply(queue, params):
+
     print("hola")
 
 
@@ -57,5 +58,5 @@ while True:
     message = sub.get_message()
     if message and message["data"] != 1:
         func, queue, params = message["data"].split(":")
-        eval(func)(queue, params)
+        eval(func)(queue, params.split(","))
         print(message)

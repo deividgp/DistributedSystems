@@ -1,5 +1,5 @@
 import logging
-import redis
+import pika
 import pandas
 
 df = ""

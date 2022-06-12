@@ -1,4 +1,4 @@
-import redis
+import pika
 import string
 import random
 
