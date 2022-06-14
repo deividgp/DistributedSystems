@@ -86,7 +86,7 @@ server.register_function(max)
 server.register_function(min)
 
 route = input("CSV route: ")
-read_csv(route)
+#read_csv(route)
 
 created = master.createWorker(address)
 
