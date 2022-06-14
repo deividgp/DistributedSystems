@@ -1,6 +1,10 @@
+from io import StringIO
+import pandas
+from pkg_resources import resource_exists
 import redis
 import string
 import random
+import time
 
 
 def generateListName():
@@ -30,36 +34,133 @@ while (num != 9):
     match num:
         case 1:
             func = input("Function To Apply Required: ")
-            
+            label = input("Label Is Required: ")
+            params = func + "," + label
             red.publish("functions", "apply:"+listName+":"+params)
+            time.sleep(2)
+            results=[]
+            while (True):
+                elem = red.lpop(listName)
+                if (elem == None):
+                    break
+                else:
+                    results.append(elem)
+            prntRsults = input(
+                "Print Or Save In A File The Results(print/save)? ")
+            if (prntRsults == "save"):
+                with open(r'./ApplyResults.csv', 'w') as fp:
+                    for item in results:
+                        fp.write("%s" % item)
+                result = "File Saved"
         case 2:
-            nameFile = input("Name File Required: ")
             red.publish("functions", "columns:"+listName+":"+params)
+            time.sleep(2)
+            while (True):
+                elem = red.lpop(listName)
+                if (elem == None):
+                    break
+                else:
+                    result = result + elem + "\n"
         case 3:
-            by = input("Mapping, Function, Label Or List Of Labels Is Required")
-            nameFile = input("Name File Required: ")
+            by = input("Label Is Required: ")
+            op = input("Order By Mean or Sum (mean/sum): ")
+            params = by + "," + op
             red.publish("functions", "groupby:"+listName+":"+params)
+            time.sleep(2)
+            allCsv = []
+            while (True):
+                elem = red.lpop(listName)
+                if (elem == None):
+                    break
+                else:
+                    allCsv.append(elem)
+            df = None
+            for csv in allCsv:
+                csvStringIO = StringIO(csv)
+                aux = pandas.read_csv(csvStringIO, sep=",", header=0)
+                df = pandas.concat([df, aux])
+            if (op == "mean"):
+                result = df.groupby(by).mean()
+            else:
+                result = df.groupby(by).sum()
+            prntRsults = input(
+                "Print Or Save In A File The Results(print/save)? ")
+            if (prntRsults == "save"):
+                result.to_csv("./OrderByResults.csv")
+                result = "File Saved"
         case 4:
-            numRows = input("Number Of Rows Required: ")
-            nameFile = input("Name File Required: ")
-            red.publish("functions", "head:"+listName+":"+params)
+            params = input("Number Of Rows Required: ")
+            red.publish("functions", "head:"+listName+":" + params + ",")
+            time.sleep(2)
+            while (True):
+                elem = red.lpop(listName)
+                if (elem == None):
+                    break
+                else:
+                    result = result + elem + "\n"
         case 5:
-            values = input(
-                "Values Required (Iterable, Series, DataFrame Or Dict): ")
-            nameFile = input("Name File Required: ")
+            label = input("Column Label Required: ")
+            values = input("Values Required (Ex:0 2): ")
+            valList = values.split()
+            params = valList[0] + "," + valList[1] + "," + label
             red.publish("functions", "isin:"+listName+":"+params)
+            time.sleep(2)
+            while (True):
+                elem = red.lpop(listName)
+                if (elem == None):
+                    break
+                else:
+                    result = result + elem
+            prntRsults = input(
+                "Print Or Save In A File The Results(print/save)? ")
+            if (prntRsults == "save"):
+                with open(r'./IsinResults.csv', 'w') as fp:
+                    fp.write("%s" % result)
+                result = "File Saved"
         case 6:
-            nameFile = input("Name File Required: ")
+            label = input("Column Label Required: ")
+            params = label + ","
             red.publish("functions", "items:"+listName+":"+params)
+            time.sleep(10)
+            while (True):
+                elem = red.lpop(listName)
+                if (elem == None):
+                    break
+                else:
+                    result = result + elem
+            prntRsults = input(
+                "Print Or Save In A File The Results(print/save)? ")
+            if (prntRsults == "save"):
+                with open(r'./ItemsResults.txt', 'w') as fp:
+                    fp.write("%s" % result)
+                result = "File Saved"
         case 7:
-            label = input("Column Label Reuqired: ")
-            nameFile = input("Name File Required: ")
+            label = input("Column Label Required: ")
+            params = label + ","
             red.publish("functions", "max:"+listName+":"+params)
+            time.sleep(5)
+            results = []
+            while (True):
+                elem = red.lpop(listName)
+                if (elem == None):
+                    break
+                else:
+                    results.append(elem)
+            result = max(results)
         case 8:
-            label = input("Column Label Reuqired: ")
-            nameFile = input("Name File Required: ")
+            label = input("Column Label Required: ")
+            params = label + ","
             red.publish("functions", "min:"+listName+":"+params)
+            time.sleep(5)
+            results = []
+            while (True):
+                elem = red.lpop(listName)
+                if (elem == None):
+                    break
+                else:
+                    results.append(elem)
+            result = min(results)
         case 9:
             result = "Have A Nice Day!"
-
     print(result)
+    input("Press Enter To Continue...")

@@ -6,8 +6,9 @@ import redis
 red = redis.Redis('localhost', 6379, charset="utf-8", decode_responses=True)
 workers = []
 num = 0
-workers = red.smembers("workers")
-
+result = red.smembers("workers")
+for address in result:
+     workers.append(xmlrpc.client.ServerProxy(address))
 while (num != 10):
     print('\n1. List & Update Workers')
     print('2. Apply A Function Along An Axis Of The DataFrame')

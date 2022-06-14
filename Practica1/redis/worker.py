@@ -1,6 +1,8 @@
 import logging
+import re
 import redis
 import pandas
+import numpy
 
 df = ""
 
@@ -11,55 +13,68 @@ def read_csv(route):
 
 
 def apply(queue, params):
-    return df[label].apply(eval(func)).values.tolist()
+    result =  df[params[1]].apply(eval(params[0])).to_csv()
+    red.rpush(queue, result)
 
 
 def columns(queue, params):
     results = df.columns
-    return results.values.tolist()
+    finalResult = ""
+    for result in results:
+        finalResult = finalResult + result + ", "
+    red.rpush(queue, finalResult)
 
 
 def groupby(queue, params):
-    if (op == "mean"):
-        results = df.groupby(label).mean()
+    if (params[1] == "mean"):
+        results = df.groupby(params[0]).mean()
     else:
-        results = df.groupby(label).sum()
-    return results.to_csv()
+        results = df.groupby(params[0]).sum()
+    red.rpush(queue, results.to_csv())
 
 
 def head(queue, params):
-    return df.head(num).values.tolist()
+    results = []
+    results = df.head(int(params[0]))
+    red.rpush(queue, results.to_csv())
 
 
 def isin(queue, params):
-    return df[label].isin([(val1), (val2)]).values.tolist()
-
+    results = []
+    print(params)
+    results = df[params[2]].isin([(params[0]), (params[1])])
+    red.rpush(queue, results.to_csv())
 
 def items(queue, params):
-    result = []
-    for label, content in df[label].items():
+    results = []
+    for label, content in df[params[0]].items():
         if (type(content) is not str):
-            result.append((label, str(content)))
+            results.append((label, str(content)))
         else:
-            result.append((label, content))
-    return result
+            results.append((label, content))
+    finalResult = ""
+    for result in results:       
+        finalResult = finalResult +  ','.join(str(s) for s in result) + "\n"
+    red.rpush(queue, finalResult)
 
 
 def max(queue, params):
-    aux = df[label].max()
+    aux = df[params[0]].max()
+    result = ""
     if (type(aux) is not str):
-        return aux.item()
+        result =  aux.item()
     else:
-        return aux
-
+        result = aux
+    red.rpush(queue, result)
 
 def min(queue, params):
-    aux = df[label].min()
+    aux = df[params[0]].min()
+    result = ""
     if (type(aux) is not str):
-        return aux.item()
+        result = aux.item()
     else:
-        return aux
-
+        result = aux
+    red.rpush(queue, result)
 
 red = redis.Redis('localhost', 6379, charset="utf-8", decode_responses=True)
 
@@ -67,7 +82,7 @@ logging.basicConfig(level=logging.INFO)
 
 print("CSV route:")
 route = input()
-# read_csv(route)
+read_csv(route)
 
 sub = red.pubsub()
 sub.subscribe("functions")
