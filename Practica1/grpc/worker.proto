@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+message Label {
+    string value = 1;
+}
+
+message Response {
+    string value = 1;
+}
+
+service Worker {
+    rpc max (Label) returns (Response) {}
+    rpc min (Label) returns (Response) {}
+}

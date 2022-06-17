@@ -2,3 +2,5 @@ pandas
 redis
 pika
 numpy
+grpcio
+grpcio-tools

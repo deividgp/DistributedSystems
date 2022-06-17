@@ -1,0 +1,20 @@
+syntax = "proto3";
+import "google/protobuf/empty.proto";
+
+message Address {
+    string value = 1;
+}
+
+message Addresses {
+    repeated string value = 1;
+}
+
+message Confirmation {
+    bool value = 1;
+}
+
+service Master {
+    rpc addWorker (Address) returns (Confirmation) {}
+    rpc deleteWorker (Address) returns (google.protobuf.Empty) {}
+    rpc getWorkers (google.protobuf.Empty) returns (Addresses) {}
+}
