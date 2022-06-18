@@ -38,7 +38,7 @@ while (num != 9):
             params = func + "," + label
             red.publish("functions", "apply:"+listName+":"+params)
             time.sleep(2)
-            results=[]
+            results = []
             while (True):
                 elem = red.lpop(listName)
                 if (elem == None):

@@ -9,7 +9,8 @@ channel = grpc.insecure_channel('localhost:9000')
 master = master_pb2_grpc.MasterStub(channel)
 workers = []
 num = 0
-response = master.getWorkers(master_pb2.google_dot_protobuf_dot_empty__pb2.Empty())
+response = master.getWorkers(
+    master_pb2.google_dot_protobuf_dot_empty__pb2.Empty())
 result = response.value
 for address in response.value:
     workers.append(worker_pb2_grpc.WorkerStub(grpc.insecure_channel(address)))
@@ -24,10 +25,12 @@ while (num != 4):
     match num:
         case 1:
             workers = []
-            response = master.getWorkers(master_pb2.google_dot_protobuf_dot_empty__pb2.Empty())
+            response = master.getWorkers(
+                master_pb2.google_dot_protobuf_dot_empty__pb2.Empty())
             result = response.value
             for address in response.value:
-                workers.append(worker_pb2_grpc.WorkerStub(grpc.insecure_channel(address)))
+                workers.append(worker_pb2_grpc.WorkerStub(
+                    grpc.insecure_channel(address)))
         case 2:
             label = input("Column Label Required: ")
             for worker in workers:

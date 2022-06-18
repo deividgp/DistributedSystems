@@ -8,7 +8,7 @@ workers = []
 num = 0
 result = red.smembers("workers")
 for address in result:
-     workers.append(xmlrpc.client.ServerProxy(address))
+    workers.append(xmlrpc.client.ServerProxy(address))
 while (num != 10):
     print('\n1. List & Update Workers')
     print('2. Apply A Function Along An Axis Of The DataFrame')

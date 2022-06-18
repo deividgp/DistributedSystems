@@ -6,6 +6,7 @@ import time
 
 workers = []
 
+
 def createWorker(address):
     if address != "9000" and address not in workers:
         workers.append(address)
@@ -14,14 +15,16 @@ def createWorker(address):
         return True
     return False
 
-    
+
 def getWorkers():
     return workers
+
 
 def deleteWorker(address):
     workers.remove(address)
     red.publish("workers", json.dumps(workers))
     print(workers)
+
 
 red = redis.Redis('localhost', 6379, charset="utf-8", decode_responses=True)
 

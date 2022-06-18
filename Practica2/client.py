@@ -9,16 +9,18 @@ master = xmlrpc.client.ServerProxy('http://localhost:9000')
 workers = []
 num = 0
 
+
 def hnd(msg):
     global workers
-    workers=json.loads(msg["data"])
+    workers = json.loads(msg["data"])
     print(workers)
+
 
 result = master.getWorkers()
 for address in result:
     workers.append(xmlrpc.client.ServerProxy(address))
 
-p=red.pubsub()
+p = red.pubsub()
 p.subscribe(**{'workers': hnd})
 thread = p.run_in_thread(sleep_time=0.001)
 

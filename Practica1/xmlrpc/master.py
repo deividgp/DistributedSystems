@@ -3,6 +3,7 @@ from xmlrpc.server import SimpleXMLRPCServer
 
 workers = []
 
+
 def createWorker(address):
     if address != "9000" and address not in workers:
         workers.append(address)
@@ -10,13 +11,15 @@ def createWorker(address):
         return True
     return False
 
-    
+
 def listWorkers():
     return workers
+
 
 def deleteWorker(address):
     workers.remove(address)
     print(workers)
+
 
 logging.basicConfig(level=logging.INFO)
 

@@ -86,7 +86,7 @@ server.register_function(max)
 server.register_function(min)
 
 route = input("CSV route: ")
-#read_csv(route)
+# read_csv(route)
 
 created = master.createWorker(address)
 
@@ -98,4 +98,4 @@ if created:
         master.deleteWorker(address)
         print('Exiting')
 else:
-    print("worker with address " +address+" could not be created")
+    print("worker with address " + address+" could not be created")

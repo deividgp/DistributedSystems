@@ -98,4 +98,4 @@ if created:
         master.deleteWorker(address)
         print('Exiting')
 else:
-    print("worker with address " +address+" could not be created")
+    print("worker with address " + address+" could not be created")

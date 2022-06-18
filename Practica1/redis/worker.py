@@ -13,7 +13,7 @@ def read_csv(route):
 
 
 def apply(queue, params):
-    result =  df[params[1]].apply(eval(params[0])).to_csv()
+    result = df[params[1]].apply(eval(params[0])).to_csv()
     red.rpush(queue, result)
 
 
@@ -45,6 +45,7 @@ def isin(queue, params):
     results = df[params[2]].isin([(params[0]), (params[1])])
     red.rpush(queue, results.to_csv())
 
+
 def items(queue, params):
     results = []
     for label, content in df[params[0]].items():
@@ -53,8 +54,8 @@ def items(queue, params):
         else:
             results.append((label, content))
     finalResult = ""
-    for result in results:       
-        finalResult = finalResult +  ','.join(str(s) for s in result) + "\n"
+    for result in results:
+        finalResult = finalResult + ','.join(str(s) for s in result) + "\n"
     red.rpush(queue, finalResult)
 
 
@@ -62,10 +63,11 @@ def max(queue, params):
     aux = df[params[0]].max()
     result = ""
     if (type(aux) is not str):
-        result =  aux.item()
+        result = aux.item()
     else:
         result = aux
     red.rpush(queue, result)
+
 
 def min(queue, params):
     aux = df[params[0]].min()
@@ -75,6 +77,7 @@ def min(queue, params):
     else:
         result = aux
     red.rpush(queue, result)
+
 
 red = redis.Redis('localhost', 6379, charset="utf-8", decode_responses=True)
 
