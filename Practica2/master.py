@@ -15,11 +15,12 @@ def createWorker(address):
     return False
 
     
-def listWorkers():
+def getWorkers():
     return workers
 
 def deleteWorker(address):
     workers.remove(address)
+    red.publish("workers", json.dumps(workers))
     print(workers)
 
 red = redis.Redis('localhost', 6379, charset="utf-8", decode_responses=True)
@@ -32,10 +33,8 @@ server = SimpleXMLRPCServer(
     allow_none=True
 )
 
-createWorker("55454")
-
 server.register_function(createWorker)
-server.register_function(listWorkers)
+server.register_function(getWorkers)
 server.register_function(deleteWorker)
 
 try:

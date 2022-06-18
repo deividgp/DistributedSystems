@@ -2,20 +2,21 @@ from io import StringIO
 import xmlrpc.client
 import pandas
 import redis
-
-def hnd(msg):
-    print("frefrefer")
-    print(msg)
+import json
 
 red = redis.Redis('localhost', 6379, charset="utf-8", decode_responses=True)
-#master = xmlrpc.client.ServerProxy('http://localhost:9000')
-master = ""
+master = xmlrpc.client.ServerProxy('http://localhost:9000')
 workers = []
 num = 0
 
-#result = master.listWorkers()
-#for address in result:
-#    workers.append(xmlrpc.client.ServerProxy(address))
+def hnd(msg):
+    global workers
+    workers=json.loads(msg["data"])
+    print(workers)
+
+result = master.getWorkers()
+for address in result:
+    workers.append(xmlrpc.client.ServerProxy(address))
 
 p=red.pubsub()
 p.subscribe(**{'workers': hnd})
@@ -23,7 +24,7 @@ thread = p.run_in_thread(sleep_time=0.001)
 
 try:
     while (num != 10):
-        print('\n1. List & Update Workers')
+        print('\n1. List Workers')
         print('2. Apply A Function Along An Axis Of The DataFrame')
         print('3. Read Columns Labels')
         print('4. Group DataFrame By Columns')
@@ -32,14 +33,13 @@ try:
         print('7. Iterate Over The DataFrame Columns')
         print('8. Get The Maximum Of The Values Over The Requested Column')
         print('9. Get The Minimum Of The Values Over The Requested Column.')
-        print('10. Exit')
-        print("11. hola\n")
+        print('10. Exit\n')
         num = int(input("Choose an option: "))
         result = []
         match num:
             case 1:
                 workers = []
-                result = master.listWorkers()
+                result = master.getWorkers()
                 for address in result:
                     workers.append(xmlrpc.client.ServerProxy(address))
             case 2:
