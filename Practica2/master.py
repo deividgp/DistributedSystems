@@ -3,13 +3,18 @@ from xmlrpc.server import SimpleXMLRPCServer
 import redis
 import json
 import time
+import subprocess
+
+#subprocess.call("coordinator.py", shell=True)
 
 workers = []
 
+def findWorker():
+    
 
-def createWorker(address):
-    if address != "9000" and address not in workers:
-        workers.append(address)
+def addWorker(address):
+    if address != "http://localhost:9000" and address not in workers:
+        workers.append((address,False))
         red.publish("workers", json.dumps(workers))
         print(workers)
         return True
@@ -21,10 +26,14 @@ def getWorkers():
 
 
 def deleteWorker(address):
-    workers.remove(address)
-    red.publish("workers", json.dumps(workers))
-    print(workers)
+    if address in workers:
+        workers.remove(address)
+        red.publish("workers", json.dumps(workers))
+        print(workers)
 
+
+def updateWorker(address, busy):
+    print("hola")
 
 red = redis.Redis('localhost', 6379, charset="utf-8", decode_responses=True)
 
@@ -36,7 +45,7 @@ server = SimpleXMLRPCServer(
     allow_none=True
 )
 
-server.register_function(createWorker)
+server.register_function(addWorker)
 server.register_function(getWorkers)
 server.register_function(deleteWorker)
 

@@ -3,22 +3,38 @@ import xmlrpc.client
 import pandas
 import redis
 import json
+import time
+
+def addWorkers():
+    global workers
+    workers = []
+    for address in addresses:
+        workers.append(xmlrpc.client.ServerProxy(address))
+
+def hnd(msg):
+    global workers, addresses
+    aux = addresses
+    addresses = json.loads(msg["data"])
+    while busy:
+        time.sleep(0.5)
+
+    addWorkers()
+
+    if len(addresses) < len(aux):
+        diff = list(set(aux).difference(addresses))
+        print("Removed workers:")
+        print(diff)
+
+    print(addresses)
+
 
 red = redis.Redis('localhost', 6379, charset="utf-8", decode_responses=True)
 master = xmlrpc.client.ServerProxy('http://localhost:9000')
-workers = []
 num = 0
+busy = False
 
-
-def hnd(msg):
-    global workers
-    workers = json.loads(msg["data"])
-    print(workers)
-
-
-result = master.getWorkers()
-for address in result:
-    workers.append(xmlrpc.client.ServerProxy(address))
+addresses = master.getWorkers()
+addWorkers()
 
 p = red.pubsub()
 p.subscribe(**{'workers': hnd})
@@ -38,91 +54,119 @@ try:
         print('10. Exit\n')
         num = int(input("Choose an option: "))
         result = []
+        busy = True
         match num:
             case 1:
-                workers = []
-                result = master.getWorkers()
-                for address in result:
-                    workers.append(xmlrpc.client.ServerProxy(address))
+                try:
+                    addresses = master.getWorkers()
+                    result = addresses
+                    addWorkers()
+                except:
+                    result = "Error"
             case 2:
-                func = input("Function To Apply Required: ")
-                label = input("Label Is Required: ")
-                for worker in workers:
-                    result.append(worker._ServerProxy__host)
-                    result.append(worker.apply(func, label))
-                prntRsults = input(
-                    "Print Or Save In A File The Results(print/save)? ")
-                if (prntRsults == "save"):
-                    with open(r'./ApplyResults.txt', 'w') as fp:
-                        for item in result:
-                            fp.write("%s\t\n" % item)
-                    result = "File Saved"
+                try:
+                    func = input("Function To Apply Required: ")
+                    label = input("Label Is Required: ")
+                    for worker in workers:
+                        result.append(worker._ServerProxy__host)
+                        result.append(worker.apply(func, label))
+                    prntRsults = input(
+                        "Print Or Save In A File The Results(print/save)? ")
+                    if (prntRsults == "save"):
+                        with open(r'./ApplyResults.txt', 'w') as fp:
+                            for item in result:
+                                fp.write("%s\t\n" % item)
+                        result = "File Saved"
+                except:
+                    result = "Error"
             case 3:
-                for worker in workers:
-                    result.append(worker._ServerProxy__host)
-                    result.append(worker.columns())
+                try:
+                    for worker in workers:
+                        result.append(worker._ServerProxy__host)
+                        result.append(worker.columns())
+                except:
+                    result = "Error"
             case 4:
-                by = input("Label Is Required: ")
-                op = input("Order By Mean or Sum (mean/sum): ")
-                for worker in workers:
-                    result.append(worker.groupby(by, op))
-                df = None
-                for csv in result:
-                    csvStringIO = StringIO(csv)
-                    aux = pandas.read_csv(csvStringIO, sep=",", header=0)
-                    df = pandas.concat([df, aux])
-                if (op == "mean"):
-                    result = df.groupby(by).mean()
-                else:
-                    result = df.groupby(by).sum()
-                prntRsults = input(
-                    "Print Or Save In A File The Results(print/save)? ")
-                if (prntRsults == "save"):
-                    result.to_csv("./OrderByResults.csv")
-                    result = "File Saved"
+                try:
+                    by = input("Label Is Required: ")
+                    op = input("Order By Mean or Sum (mean/sum): ")
+                    for worker in workers:
+                        result.append(worker.groupby(by, op))
+                    df = None
+                    for csv in result:
+                        csvStringIO = StringIO(csv)
+                        aux = pandas.read_csv(csvStringIO, sep=",", header=0)
+                        df = pandas.concat([df, aux])
+                    if (op == "mean"):
+                        result = df.groupby(by).mean()
+                    else:
+                        result = df.groupby(by).sum()
+                    prntRsults = input(
+                        "Print Or Save In A File The Results(print/save)? ")
+                    if (prntRsults == "save"):
+                        result.to_csv("./OrderByResults.csv")
+                        result = "File Saved"
+                except:
+                    result = "Error"
             case 5:
-                numRows = input("Number Of Rows Required: ")
-                for worker in workers:
-                    result.append(worker._ServerProxy__host)
-                    result.append(worker.head(int(numRows)))
+                try:
+                    numRows = input("Number Of Rows Required: ")
+                    for worker in workers:
+                        result.append(worker._ServerProxy__host)
+                        result.append(worker.head(int(numRows)))
+                except:
+                    result = "Error"
             case 6:
-                label = input("Column Label Required: ")
-                values = input("Values Required (Ex:0 2): ")
-                valList = values.split()
-                for worker in workers:
-                    result.append(worker._ServerProxy__host)
-                    result.append(worker.isin(valList[0], valList[1], label))
-                prntRsults = input(
-                    "Print Or Save In A File The Results(print/save)? ")
-                if (prntRsults == "save"):
-                    with open(r'./IsinResults.txt', 'w') as fp:
-                        for item in result:
-                            fp.write("%s\t\n" % item)
-                    result = "File Saved"
+                try:
+                    label = input("Column Label Required: ")
+                    values = input("Values Required (Ex:0 2): ")
+                    valList = values.split()
+                    for worker in workers:
+                        result.append(worker._ServerProxy__host)
+                        result.append(worker.isin(valList[0], valList[1], label))
+                    prntRsults = input(
+                        "Print Or Save In A File The Results(print/save)? ")
+                    if (prntRsults == "save"):
+                        with open(r'./IsinResults.txt', 'w') as fp:
+                            for item in result:
+                                fp.write("%s\t\n" % item)
+                        result = "File Saved"
+                except:
+                    result = "Error"
             case 7:
-                label = input("Column Label Required: ")
-                for worker in workers:
-                    result.append(worker._ServerProxy__host)
-                    result.append(worker.items(label))
-                prntRsults = input(
-                    "Print Or Save In A File The Results(print/save)? ")
-                if (prntRsults == "save"):
-                    with open(r'./ItemsResults.txt', 'w') as fp:
-                        for item in result:
-                            fp.write("%s\t\n" % item)
-                    result = "File Saved"
+                try:
+                    label = input("Column Label Required: ")
+                    for worker in workers:
+                        result.append(worker._ServerProxy__host)
+                        result.append(worker.items(label))
+                    prntRsults = input(
+                        "Print Or Save In A File The Results(print/save)? ")
+                    if (prntRsults == "save"):
+                        with open(r'./ItemsResults.txt', 'w') as fp:
+                            for item in result:
+                                fp.write("%s\t\n" % item)
+                        result = "File Saved"
+                except:
+                    result = "Error"
             case 8:
-                label = input("Column Label Required: ")
-                for worker in workers:
-                    result.append(worker.max(label))
-                result = max(result)
+                try:
+                    label = input("Column Label Required: ")
+                    for worker in workers:
+                        result.append(worker.max(label))
+                    result = max(result)
+                except:
+                    result = "Error"
             case 9:
-                label = input("Column Label Required: ")
-                for worker in workers:
-                    result.append(worker.min(label))
-                result = min(result)
+                try:
+                    label = input("Column Label Required: ")
+                    for worker in workers:
+                        result.append(worker.min(label))
+                    result = min(result)
+                except:
+                    result = "Error"
             case 10:
                 result = "Have A Nice Day!"
+        busy = False
         print(result)
         input("Press Enter To Continue...")
 except KeyboardInterrupt:

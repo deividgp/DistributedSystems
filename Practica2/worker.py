@@ -1,11 +1,47 @@
+from concurrent.futures import thread
 import logging
 import pandas
 import sys
 from xmlrpc.server import SimpleXMLRPCServer
 import xmlrpc.client
 import numpy
+import threading
+import time
+import redis
+import json
+import socket
 
-df = ""
+
+def hnd(msg):
+    global workers
+    workers = json.loads(msg["data"])
+    workers.append("http://localhost:9000")
+    print(workers)
+
+
+def pingThread(stop_event):
+    while not stop_event.is_set():
+        for worker in workers:
+            time.sleep(5)
+            if worker == "http://localhost:9000":
+                port = worker.split(":")[2]
+                try:
+                    s = socket.socket()
+                    s.connect(("localhost", int(port)))
+                    s.close()
+                except:
+                    
+                    print("no es pot connectar")
+            elif worker != address:
+                port = worker.split(":")[2]
+                try:
+                    s = socket.socket()
+                    s.connect(("localhost", int(port)))
+                    s.close()
+                    print("es pot connectar")
+                except:
+                    master.deleteWorker(worker)
+                    print("no es pot connectar")
 
 
 def read_csv(route):
@@ -63,6 +99,16 @@ def min(label):
     else:
         return aux
 
+def newMaster():
+    print("hola")
+
+def masterChosen():
+    print("hola")
+
+master = xmlrpc.client.ServerProxy('http://localhost:9000')
+
+df = ""
+workers = []
 
 address = "http://localhost:"+sys.argv[1]
 
@@ -74,8 +120,6 @@ server = SimpleXMLRPCServer(
     allow_none=True
 )
 
-master = xmlrpc.client.ServerProxy('http://localhost:9000')
-
 server.register_function(apply)
 server.register_function(columns)
 server.register_function(groupby)
@@ -86,16 +130,29 @@ server.register_function(max)
 server.register_function(min)
 
 route = input("CSV route: ")
+
 # read_csv(route)
 
-created = master.createWorker(address)
+created = master.addWorker(address)
 
 if created:
     try:
+        workers = master.getWorkers()
+        red = redis.Redis('localhost', 6379, charset="utf-8",
+                          decode_responses=True)
+        p = red.pubsub()
+        p.subscribe(**{'workers': hnd})
+        x = p.run_in_thread(sleep_time=0.001)
+        stop_event = threading.Event()
+        t = threading.Thread(
+            daemon=True, target=pingThread, args=(stop_event,))
+        t.start()
         print('Control+C PER SORTIR')
         server.serve_forever()
     except KeyboardInterrupt:
+        stop_event.set()
         master.deleteWorker(address)
+        x.stop()
         print('Exiting')
 else:
     print("worker with address " + address+" could not be created")

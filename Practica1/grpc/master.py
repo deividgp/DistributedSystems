@@ -15,7 +15,7 @@ class MasterServicer(master_pb2_grpc.MasterServicer):
         addressAux = address.value
         response = master_pb2.Confirmation()
         response.value = False
-        if addressAux != "9000" and addressAux not in workers:
+        if addressAux != "http://localhost:9000" and addressAux not in workers:
             workers.append(addressAux)
             response.value = True
             print(workers)

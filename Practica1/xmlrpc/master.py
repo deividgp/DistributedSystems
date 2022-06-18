@@ -5,7 +5,7 @@ workers = []
 
 
 def createWorker(address):
-    if address != "9000" and address not in workers:
+    if address != "http://localhost:9000" and address not in workers:
         workers.append(address)
         print(workers)
         return True
