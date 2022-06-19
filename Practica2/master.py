@@ -27,6 +27,8 @@ def deleteWorker(address):
         workers.remove(address)
         red.publish("workers", json.dumps(workers))
         print(workers)
+        return True
+    return False
 
 red = redis.Redis('localhost', 6379, charset="utf-8", decode_responses=True)
 
