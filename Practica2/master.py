@@ -9,12 +9,9 @@ import subprocess
 
 workers = []
 
-def findWorker():
-    
-
 def addWorker(address):
     if address != "http://localhost:9000" and address not in workers:
-        workers.append((address,False))
+        workers.append(address)
         red.publish("workers", json.dumps(workers))
         print(workers)
         return True
@@ -30,10 +27,6 @@ def deleteWorker(address):
         workers.remove(address)
         red.publish("workers", json.dumps(workers))
         print(workers)
-
-
-def updateWorker(address, busy):
-    print("hola")
 
 red = redis.Redis('localhost', 6379, charset="utf-8", decode_responses=True)
 
