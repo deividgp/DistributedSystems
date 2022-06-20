@@ -1,5 +1,6 @@
 from concurrent.futures import thread
 import logging
+from typing import final
 from unittest import result
 import pandas
 import sys
@@ -13,23 +14,25 @@ import json
 import socket
 import random
 
-# First Redis handler which receives an updated workers list from the master 
+# First Redis handler which receives an updated workers list from the master
+
+
 def hnd(msg):
     global workers
-    
-    if ownMaster == False:
-        # Doesn't update while looping through 
-        while busy:
-            time.sleep(0.25)
 
+    if ownMaster == False:
         workers = json.loads(msg["data"])
         print(workers)
 
 # Second Redis handler which receives the new pingMasterAddress
+
+
 def hnd2(msg):
     global pingMasterAddress
     if ownMaster == False:
         pingMasterAddress = msg["data"]
+
+# Check if port is active
 
 
 def checkPort(port):
@@ -42,37 +45,50 @@ def checkPort(port):
         result = False
     return result
 
+
 def pingThread(stop_event):
-    global busy, ownMaster, pingMasterAddress, workers
-    
+    global ownMaster, pingMasterAddress, workers
+
     while not stop_event.is_set():
-        if len(workers) == 1 or pingMasterAddress == address:
+        # Auxiliar list that stores worker addresses
+        auxWorkers = workers
+        # If there is just one worker or the pingMasterAddress corresponds to the worker own address
+        if len(auxWorkers) == 1 or pingMasterAddress == address:
             if checkPort(9000) == False:
+                # Waits for task to end
                 while inTask:
                     time.sleep(0.25)
+                # Shuts down the current worker server
                 server.shutdown()
                 server.server_close()
                 ownMaster = True
-            if len(workers) > 1:
-                red.publish("nextWorker", random.choice([x for x in workers if x != address]))
-            elif len(workers) == 1:
+            if len(auxWorkers) > 1:
+                red.publish("nextWorker", random.choice(
+                    [x for x in auxWorkers if x != address]))
+            # If only one worker left 
+            elif len(auxWorkers) == 1:
                 pingMasterAddress = address
-            
+
+        # If the worker turns into a master then the loop ends
         if ownMaster:
             break
-
-        busy = True
-        for worker in workers:
+        
+        # Iterate through the workers list
+        for worker in auxWorkers:
             if worker != address:
+                # Get the port from the address
                 port = worker.split(":")[2]
+                # If not active
                 if checkPort(int(port)) == False:
+                    # Remove the worker
                     aux = master.deleteWorker(worker)
                     if worker == pingMasterAddress and aux:
-                        red.publish("nextWorker", random.choice([x for x in workers if x != worker]))
-        busy = False
-        time.sleep(0.75)
+                        # Chooses a new pingMasterAddress among all workers but the inactive one
+                        red.publish("nextWorker", random.choice(
+                            [x for x in auxWorkers if x != worker]))
+        time.sleep(0.5)
 
-
+# Worker functions
 def read_csv(route):
     global df
     df = pandas.read_csv(route)
@@ -154,6 +170,8 @@ def min(label):
     return result
 
 # Master functions
+
+
 def addWorker(address):
     if address != "http://localhost:9000" and address not in workers:
         workers.append(address)
@@ -175,17 +193,19 @@ def deleteWorker(address):
         return True
     return False
 
+
 pingMasterAddress = ""
 df = ""
 workers = []
-busy = False
 inTask = False
 ownMaster = False
+created = False
 address = "http://localhost:"+sys.argv[1]
 
 try:
+    # Redis initialization to get data as soon as possible
     red = redis.Redis('localhost', 6379, charset="utf-8",
-                            decode_responses=True)
+                      decode_responses=True)
     p = red.pubsub()
     p.subscribe(**{'workers': hnd, 'nextWorker': hnd2})
     x = p.run_in_thread(sleep_time=0.001)
@@ -209,49 +229,49 @@ try:
 
     route = input("CSV route: ")
 
-    read_csv(route)
+    # read_csv(route)
     master = xmlrpc.client.ServerProxy('http://localhost:9000')
     created = master.addWorker(address)
 
     if created:
-            workers = master.getWorkers()
-            if len(workers) == 1:
-                pingMasterAddress = address
-            
+        workers = master.getWorkers()
+        if len(workers) == 1:
+            pingMasterAddress = address
 
-            stop_event = threading.Event()
-            t = threading.Thread(
-                daemon=True, target=pingThread, args=(stop_event,))
-            t.start()
-            print('Control+C PER SORTIR')
+        stop_event = threading.Event()
+        t = threading.Thread(
+            daemon=True, target=pingThread, args=(stop_event,))
+        t.start()
+        print('Control+C PER SORTIR')
 
-            server.serve_forever()
-            ownMaster = True
-            server = SimpleXMLRPCServer(
-                ('localhost', 9000),
-                logRequests=True,
-                allow_none=True
-            )
+        server.serve_forever()
+        ownMaster = True
+        server = SimpleXMLRPCServer(
+            ('localhost', 9000),
+            logRequests=True,
+            allow_none=True
+        )
 
-            server.register_function(addWorker)
-            server.register_function(getWorkers)
-            server.register_function(deleteWorker)
+        server.register_function(addWorker)
+        server.register_function(getWorkers)
+        server.register_function(deleteWorker)
 
-            if len(workers) == 1:
-                deleteWorker(address)
-            
-            stop_event.set()
-            t.join()
-            x.stop()
-            p.unsubscribe()
-            print("I AM MASTER NOW")
-            server.serve_forever()
+        if len(workers) == 1:
+            deleteWorker(address)
+
+        stop_event.set()
+        t.join()
+        x.stop()
+        p.unsubscribe()
+        print("I AM MASTER NOW")
+        server.serve_forever()
     else:
         print("worker with address " + address+" could not be created")
 
 except KeyboardInterrupt:
-        stop_event.set()
-        if ownMaster == False and created and len(workers) == 1:
-            master.deleteWorker(address)
-        x.stop()
-        print('Exiting')
+    print('Exiting')
+finally:
+    if ownMaster == False and created and len(workers) == 1:
+        master.deleteWorker(address)
+    stop_event.set()
+    x.stop()

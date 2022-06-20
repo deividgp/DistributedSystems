@@ -2,10 +2,6 @@ import logging
 from xmlrpc.server import SimpleXMLRPCServer
 import redis
 import json
-import time
-import subprocess
-
-#subprocess.call("coordinator.py", shell=True)
 
 workers = []
 
