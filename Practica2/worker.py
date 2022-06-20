@@ -13,17 +13,19 @@ import json
 import socket
 import random
 
+# First Redis handler which receives an updated workers list from the master 
 def hnd(msg):
     global workers
     
     if ownMaster == False:
+        # Doesn't update while looping through 
         while busy:
             time.sleep(0.25)
 
         workers = json.loads(msg["data"])
         print(workers)
 
-
+# Second Redis handler which receives the new pingMasterAddress
 def hnd2(msg):
     global pingMasterAddress
     if ownMaster == False:
@@ -42,6 +44,7 @@ def checkPort(port):
 
 def pingThread(stop_event):
     global busy, ownMaster, pingMasterAddress, workers
+    
     while not stop_event.is_set():
         if len(workers) == 1 or pingMasterAddress == address:
             if checkPort(9000) == False:
@@ -206,7 +209,7 @@ try:
 
     route = input("CSV route: ")
 
-    #read_csv(route)
+    read_csv(route)
     master = xmlrpc.client.ServerProxy('http://localhost:9000')
     created = master.addWorker(address)
 
@@ -248,7 +251,7 @@ try:
 
 except KeyboardInterrupt:
         stop_event.set()
-        if ownMaster == False and created:
+        if ownMaster == False and created and len(workers) == 1:
             master.deleteWorker(address)
         x.stop()
         print('Exiting')
