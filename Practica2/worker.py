@@ -15,10 +15,10 @@ import random
 
 def hnd(msg):
     global workers
-
+    
     if ownMaster == False:
         while busy:
-            time.sleep(0.5)
+            time.sleep(0.25)
 
         workers = json.loads(msg["data"])
         print(workers)
@@ -30,25 +30,30 @@ def hnd2(msg):
         pingMasterAddress = msg["data"]
 
 
+def checkPort(port):
+    result = True
+    try:
+        s = socket.socket()
+        s.connect(("localhost", port))
+        s.close()
+    except:
+        result = False
+    return result
+
 def pingThread(stop_event):
     global busy, ownMaster, pingMasterAddress, workers
     while not stop_event.is_set():
         if len(workers) == 1 or pingMasterAddress == address:
-            try:
-                s = socket.socket()
-                s.connect(("localhost", 9000))
-                s.close()
-            except:
+            if checkPort(9000) == False:
                 while inTask:
-                    time.sleep(0.5)
+                    time.sleep(0.25)
                 server.shutdown()
                 server.server_close()
                 ownMaster = True
-            finally:
-                if len(workers) > 1:
-                    red.publish("nextWorker", random.choice([x for x in workers if x != address]))
-                elif len(workers) == 1:
-                    pingMasterAddress = address
+            if len(workers) > 1:
+                red.publish("nextWorker", random.choice([x for x in workers if x != address]))
+            elif len(workers) == 1:
+                pingMasterAddress = address
             
         if ownMaster:
             break
@@ -57,16 +62,12 @@ def pingThread(stop_event):
         for worker in workers:
             if worker != address:
                 port = worker.split(":")[2]
-                try:
-                    s = socket.socket()
-                    s.connect(("localhost", int(port)))
-                    s.close()
-                except:
+                if checkPort(int(port)) == False:
                     aux = master.deleteWorker(worker)
                     if worker == pingMasterAddress and aux:
-                        red.publish("nextWorker", random.choice([x for x in workers if x != address and x != worker]))
+                        red.publish("nextWorker", random.choice([x for x in workers if x != worker]))
         busy = False
-        time.sleep(2.5)
+        time.sleep(0.75)
 
 
 def read_csv(route):
@@ -168,6 +169,8 @@ def deleteWorker(address):
         workers.remove(address)
         red.publish("workers", json.dumps(workers))
         print(workers)
+        return True
+    return False
 
 pingMasterAddress = ""
 df = ""
@@ -203,7 +206,7 @@ try:
 
     route = input("CSV route: ")
 
-    read_csv(route)
+    #read_csv(route)
     master = xmlrpc.client.ServerProxy('http://localhost:9000')
     created = master.addWorker(address)
 
@@ -220,15 +223,7 @@ try:
             print('Control+C PER SORTIR')
 
             server.serve_forever()
-
-            stop_event.set()
-            t.join()
             ownMaster = True
-            x.stop()
-            p.unsubscribe()
-
-            deleteWorker(address)
-
             server = SimpleXMLRPCServer(
                 ('localhost', 9000),
                 logRequests=True,
@@ -239,8 +234,15 @@ try:
             server.register_function(getWorkers)
             server.register_function(deleteWorker)
 
+            if len(workers) == 1:
+                deleteWorker(address)
+            
+            stop_event.set()
+            t.join()
+            x.stop()
+            p.unsubscribe()
+            print("I AM MASTER NOW")
             server.serve_forever()
-        
     else:
         print("worker with address " + address+" could not be created")
 
