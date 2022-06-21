@@ -45,6 +45,7 @@ while (num != 9):
                     break
                 else:
                     results.append(elem)
+            result = results
             prntRsults = input(
                 "Print Or Save In A File The Results(print/save)? ")
             if (prntRsults == "save"):

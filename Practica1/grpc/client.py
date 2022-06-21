@@ -34,12 +34,12 @@ while (num != 4):
         case 2:
             label = input("Column Label Required: ")
             for worker in workers:
-                result.append(worker.max(worker_pb2.Label(value=label)))
+                result.append(worker.max(worker_pb2.Label(value=label)).value)
             result = max(result)
         case 3:
             label = input("Column Label Required: ")
             for worker in workers:
-                result.append(worker.min(worker_pb2.Label(value=label)))
+                result.append(worker.min(worker_pb2.Label(value=label)).value)
             result = min(result)
         case 4:
             result = "Have A Nice Day!"
